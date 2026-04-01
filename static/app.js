@@ -1,6 +1,5 @@
 const expressionDisplay = document.getElementById("display-expression");
 const valueDisplay = document.getElementById("display-value");
-const statusElement = document.getElementById("status");
 const keypad = document.querySelector(".keypad");
 
 const state = {
@@ -35,17 +34,11 @@ function operationToSymbol(operation) {
   return map[operation] || "?";
 }
 
-function setStatus(text, isError = false) {
-  statusElement.textContent = text;
-  statusElement.style.color = isError ? "#ffc2b3" : "#cce2f2";
-}
-
 function resetCalculator() {
   state.left = "0";
   state.right = null;
   state.operation = null;
   state.justEvaluated = false;
-  setStatus("Ready");
   render();
 }
 
@@ -105,13 +98,11 @@ function chooseOperation(operation) {
   }
   state.operation = operation;
   state.justEvaluated = false;
-  setStatus(`Operation: ${operationToSymbol(operation)}`);
   render();
 }
 
 async function evaluate() {
   if (!state.operation || state.right === null) {
-    setStatus("Enter full expression first", true);
     return;
   }
 
@@ -120,8 +111,6 @@ async function evaluate() {
     b: Number(state.right),
     operation: state.operation,
   };
-
-  setStatus("Calculating...");
 
   try {
     const response = await fetch("/api/calc", {
@@ -133,7 +122,6 @@ async function evaluate() {
     const body = await response.json();
 
     if (!response.ok) {
-      setStatus(body.detail || "Request failed", true);
       return;
     }
 
@@ -141,10 +129,9 @@ async function evaluate() {
     state.right = null;
     state.operation = null;
     state.justEvaluated = true;
-    setStatus(`Result: ${body.result}`);
     render();
   } catch (error) {
-    setStatus(`Network error: ${String(error)}`, true);
+    console.error("Network error while calculating:", error);
   }
 }
 
