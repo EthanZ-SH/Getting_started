@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Modern Calculator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <section class="calculator-shell" aria-label="Calculator">
+        <header class="brand-row">
+          <p class="brand">FASTAPI-82</p>
+          <p class="brand-dot" aria-hidden="true"></p>
+        </header>
+
+        <div id="display" class="display" aria-live="polite">0</div>
+
+        <div class="keypad" role="group" aria-label="Calculator buttons">
+          <button class="key key-ac" data-action="clear">AC</button>
+          <button class="key key-sign" data-action="negate">+/-</button>
+          <button class="key key-op" data-op="divide">/</button>
+          <button class="key key-op" data-op="multiply">x</button>
+
+          <button class="key" data-digit="7">7</button>
+          <button class="key" data-digit="8">8</button>
+          <button class="key" data-digit="9">9</button>
+          <button class="key key-op" data-op="subtract">-</button>
+
+          <button class="key" data-digit="4">4</button>
+          <button class="key" data-digit="5">5</button>
+          <button class="key" data-digit="6">6</button>
+          <button class="key key-op" data-op="add">+</button>
+
+          <button class="key" data-digit="1">1</button>
+          <button class="key" data-digit="2">2</button>
+          <button class="key" data-digit="3">3</button>
+          <button class="key key-equals" data-action="equals">=</button>
+
+          <button class="key key-wide" data-digit="0">0</button>
+          <button class="key" data-action="decimal">.</button>
+        </div>
+
+        <p id="status" class="status">Ready</p>
+      </section>
+    </main>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>
