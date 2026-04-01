@@ -1,4 +1,5 @@
-const display = document.getElementById("display");
+const expressionDisplay = document.getElementById("display-expression");
+const valueDisplay = document.getElementById("display-value");
 const statusElement = document.getElementById("status");
 const keypad = document.querySelector(".keypad");
 
@@ -10,12 +11,18 @@ const state = {
 };
 
 function render() {
+  let expressionText = state.left;
+
   if (state.right !== null && state.operation) {
     const symbol = operationToSymbol(state.operation);
-    display.textContent = `${state.left} ${symbol} ${state.right}`;
-    return;
+    expressionText = `${state.left} ${symbol} ${state.right}`;
+  } else if (state.operation) {
+    const symbol = operationToSymbol(state.operation);
+    expressionText = `${state.left} ${symbol}`;
   }
-  display.textContent = state.left;
+
+  expressionDisplay.textContent = expressionText;
+  valueDisplay.textContent = state.right !== null ? state.right : state.left;
 }
 
 function operationToSymbol(operation) {
@@ -30,7 +37,7 @@ function operationToSymbol(operation) {
 
 function setStatus(text, isError = false) {
   statusElement.textContent = text;
-  statusElement.style.color = isError ? "#ffb4a3" : "#c4d2d8";
+  statusElement.style.color = isError ? "#ffc2b3" : "#cce2f2";
 }
 
 function resetCalculator() {
