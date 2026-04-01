@@ -1,5 +1,5 @@
-const display = document.getElementById("display");
-const statusElement = document.getElementById("status");
+const expressionDisplay = document.getElementById("display-expression");
+const valueDisplay = document.getElementById("display-value");
 const keypad = document.querySelector(".keypad");
 
 const state = {
@@ -10,12 +10,18 @@ const state = {
 };
 
 function render() {
+  let expressionText = state.left;
+
   if (state.right !== null && state.operation) {
     const symbol = operationToSymbol(state.operation);
-    display.textContent = `${state.left} ${symbol} ${state.right}`;
-    return;
+    expressionText = `${state.left} ${symbol} ${state.right}`;
+  } else if (state.operation) {
+    const symbol = operationToSymbol(state.operation);
+    expressionText = `${state.left} ${symbol}`;
   }
-  display.textContent = state.left;
+
+  expressionDisplay.textContent = expressionText;
+  valueDisplay.textContent = state.right !== null ? state.right : state.left;
 }
 
 function operationToSymbol(operation) {
@@ -28,17 +34,11 @@ function operationToSymbol(operation) {
   return map[operation] || "?";
 }
 
-function setStatus(text, isError = false) {
-  statusElement.textContent = text;
-  statusElement.style.color = isError ? "#ffb4a3" : "#c4d2d8";
-}
-
 function resetCalculator() {
   state.left = "0";
   state.right = null;
   state.operation = null;
   state.justEvaluated = false;
-  setStatus("Ready");
   render();
 }
 
@@ -92,19 +92,39 @@ function negateCurrent() {
   render();
 }
 
+function backspaceCurrent() {
+  const targetKey = state.operation ? "right" : "left";
+  const current = state[targetKey];
+
+  if (current === null) {
+    return;
+  }
+
+  if (state.justEvaluated && targetKey === "left") {
+    state.justEvaluated = false;
+  }
+
+  const isNegativeSingleDigit = current.length === 2 && current.startsWith("-");
+  if (current.length <= 1 || isNegativeSingleDigit) {
+    state[targetKey] = "0";
+  } else {
+    state[targetKey] = current.slice(0, -1);
+  }
+
+  render();
+}
+
 function chooseOperation(operation) {
   if (state.right !== null) {
     return;
   }
   state.operation = operation;
   state.justEvaluated = false;
-  setStatus(`Operation: ${operationToSymbol(operation)}`);
   render();
 }
 
 async function evaluate() {
   if (!state.operation || state.right === null) {
-    setStatus("Enter full expression first", true);
     return;
   }
 
@@ -113,8 +133,6 @@ async function evaluate() {
     b: Number(state.right),
     operation: state.operation,
   };
-
-  setStatus("Calculating...");
 
   try {
     const response = await fetch("/api/calc", {
@@ -126,7 +144,6 @@ async function evaluate() {
     const body = await response.json();
 
     if (!response.ok) {
-      setStatus(body.detail || "Request failed", true);
       return;
     }
 
@@ -134,10 +151,23 @@ async function evaluate() {
     state.right = null;
     state.operation = null;
     state.justEvaluated = true;
-    setStatus(`Result: ${body.result}`);
     render();
   } catch (error) {
-    setStatus(`Network error: ${String(error)}`, true);
+    console.error("Network error while calculating:", error);
+  }
+}
+
+async function handleAction(action) {
+  if (action === "decimal") {
+    appendDecimal();
+  } else if (action === "negate") {
+    negateCurrent();
+  } else if (action === "clear") {
+    resetCalculator();
+  } else if (action === "backspace") {
+    backspaceCurrent();
+  } else if (action === "equals") {
+    await evaluate();
   }
 }
 
@@ -157,16 +187,51 @@ keypad.addEventListener("click", async (event) => {
     return;
   }
 
-  const action = button.dataset.action;
-  if (action === "decimal") {
-    appendDecimal();
-  } else if (action === "negate") {
-    negateCurrent();
-  } else if (action === "clear") {
-    resetCalculator();
-  } else if (action === "equals") {
-    await evaluate();
+  await handleAction(button.dataset.action);
+});
+
+window.addEventListener("keydown", async (event) => {
+  const tagName = event.target?.tagName;
+  if (tagName === "INPUT" || tagName === "TEXTAREA" || event.target?.isContentEditable) {
+    return;
   }
+
+  if (/^[0-9]$/.test(event.key)) {
+    appendDigit(event.key);
+    return;
+  }
+
+  const operationByKey = {
+    "+": "add",
+    "-": "subtract",
+    "*": "multiply",
+    "/": "divide",
+  };
+
+  if (operationByKey[event.key]) {
+    chooseOperation(operationByKey[event.key]);
+    return;
+  }
+
+  const actionByKey = {
+    ".": "decimal",
+    ",": "decimal",
+    Enter: "equals",
+    "=": "equals",
+    Backspace: "backspace",
+    Delete: "clear",
+    Escape: "clear",
+    n: "negate",
+    N: "negate",
+  };
+
+  const action = actionByKey[event.key];
+  if (!action) {
+    return;
+  }
+
+  event.preventDefault();
+  await handleAction(action);
 });
 
 resetCalculator();
