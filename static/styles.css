@@ -156,6 +156,10 @@ body {
   background: linear-gradient(180deg, #dcecf9, #c7dff2);
 }
 
+.key-fn {
+  background: linear-gradient(180deg, #dcecf9, #c7dff2);
+}
+
 .key-wide {
   grid-column: span 2;
 }
